@@ -3,7 +3,6 @@ pipeline {
 
     tools {
         maven 'maven' // Ensure "maven" matches the name in Global Tool Configuration
-        dockerTool 'docker' // Ensure "dockerTool" matches the name in Global Tool Configuration
     }
 
     environment {
