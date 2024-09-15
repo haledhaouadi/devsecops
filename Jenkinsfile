@@ -1,21 +1,21 @@
 pipeline {
-    agent any
+    agent { label 'java-docker-slave' }
 
     tools {
-        maven 'maven' // Ensure "maven" matches the name in Global Tool Configuration
+        maven 'maven'
     }
 
     environment {
         MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED'
-        DOCKER_IMAGE_NAME = 'hala' // Set Docker image name to "hala"
-        DOCKER_IMAGE_TAG = "${env.GIT_COMMIT}" // Use Git commit as Docker image tag
+        DOCKER_IMAGE_NAME = 'hala'
+        DOCKER_IMAGE_TAG = "${env.GIT_COMMIT}"
     }
 
     stages {
         stage('Build Artifact') {
             steps {
                 sh "mvn clean package -DskipTests=true"
-                archiveArtifacts artifacts: 'target/*.jar' // Archive JAR artifacts
+                archiveArtifacts artifacts: 'target/*.jar'
             }
         }
 
@@ -25,14 +25,13 @@ pipeline {
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml' // Archive JUnit test results
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
 
         stage('Code Coverage') {
             steps {
-                // Generate JaCoCo report
                 jacoco execPattern: '**/target/jacoco.exec',
                        classPattern: '**/target/classes',
                        sourcePattern: '**/src/main/java'
@@ -42,11 +41,21 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 script {
-                    // Print environment variables for debugging
-                    sh 'printenv'
+                    // Check if Docker daemon is running
+                    def dockerStatus = sh(script: 'docker ps', returnStdout: true).trim()
+                    if (!dockerStatus) {
+                        error("Docker daemon is not running")
+                    }
 
                     // Build Docker image
-                    sh "docker -version"
+                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+
+                    // Push Docker image
+                    sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+
+                    // Verify image was pushed successfully
+                    def pushedImage = sh(script: "docker images", returnStdout: true).trim()
+                    assert pushedImage.contains("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
                 }
             }
         }
@@ -54,7 +63,7 @@ pipeline {
 
     post {
         always {
-            cleanWs() // Clean workspace after build
+            cleanWs()
         }
     }
 }
