@@ -46,10 +46,7 @@ pipeline {
                     sh 'printenv'
 
                     // Build Docker image
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-
-                    // Push Docker image
-                    sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                    sh "docker -version"
                 }
             }
         }
