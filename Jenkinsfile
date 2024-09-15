@@ -1,14 +1,11 @@
-pipeline {
-    agent { label 'java-docker-slave' }
-
-    tools {
-        maven 'maven'
-    }
+ pipeline {
+    agent { label 'docker' } // This assumes you have a Docker agent configured
 
     environment {
         MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED'
         DOCKER_IMAGE_NAME = 'hala'
         DOCKER_IMAGE_TAG = "${env.GIT_COMMIT}"
+        DOCKER_HOST = '/var/run/docker.sock'
     }
 
     stages {
@@ -67,4 +64,3 @@ pipeline {
         }
     }
 }
-
