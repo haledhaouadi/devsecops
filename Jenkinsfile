@@ -5,7 +5,6 @@
         MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED'
         DOCKER_IMAGE_NAME = 'hala'
         DOCKER_IMAGE_TAG = "${env.GIT_COMMIT}"
-        DOCKER_HOST = '/var/run/docker.sock'
     }
 
     stages {
@@ -38,11 +37,7 @@
         stage('Docker Build and Push') {
             steps {
                 script {
-                    // Check if Docker daemon is running
-                    def dockerStatus = sh(script: 'docker ps', returnStdout: true).trim()
-                    if (!dockerStatus) {
-                        error("Docker daemon is not running")
-                    }
+                    
 
                     // Build Docker image
                     sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
