@@ -34,24 +34,7 @@
             }
         }
 
-        stage('Docker Build and Push') {
-            steps {
-                script {
-                    
-
-                    // Build Docker image
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
-
-                    // Push Docker image
-                    sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-
-                    // Verify image was pushed successfully
-                    def pushedImage = sh(script: "docker images", returnStdout: true).trim()
-                    assert pushedImage.contains("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
-                }
-            }
-        }
-    }
+      
 
     post {
         always {
