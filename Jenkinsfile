@@ -1,5 +1,5 @@
  pipeline {
-    agent { label 'docker' } // This assumes you have a Docker agent configured
+    agent any // This assumes you have a Docker agent configured
 
     environment {
         MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED'
