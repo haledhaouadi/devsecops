@@ -1,5 +1,5 @@
- pipeline {
-    agent any // This assumes you have a Docker agent configured
+pipeline {
+    agent any
 
     environment {
         MAVEN_OPTS = '--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED'
@@ -33,8 +33,7 @@
                        sourcePattern: '**/src/main/java'
             }
         }
-
-      
+    }
 
     post {
         always {
