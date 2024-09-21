@@ -60,6 +60,23 @@ pipeline {
                 }
             }
         }
+
+      // Deploy to Kubernetes Stage
+      stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Use the secret file stored in Jenkins for the kubeconfig
+                    withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+                        sh '''
+                            export KUBECONFIG=${KUBECONFIG}
+                            kubectl config current-context
+                            sed -i "s|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g" k8s_deployment_service.yaml
+                            kubectl apply -f k8s_deployment_service.yaml --validate=false
+                        '''
+                    }
+                }
+            }
+        }
     }
     
     post {
