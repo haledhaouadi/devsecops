@@ -9,21 +9,48 @@ pipeline {
         IMAGE_TAG = "devsecops-${env.BUILD_NUMBER}"  // Utilisation du numéro de build Jenkins comme version
   }
   stages {
+      // Build Artifact Stage
       stage('Build Artifact') {
             steps {
+              // Build the artifact without running tests
               sh "mvn clean package -DskipTests=true"
-              archive 'target/*.jar' //so that they can be downloaded later
+              // Archive the built JAR file
+              archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
-        } 
+        }
 
-      stage('Build Variable Image') {
+      // Unit Testing with JaCoCo Stage
+      stage('Unit Test') {
+            steps {
+              // Run tests and generate code coverage
+              sh "mvn test"
+              // Publish JUnit test results
+              junit '**/target/surefire-reports/*.xml'
+            }
+        }
+
+      // Code Coverage with JaCoCo Stage
+      stage('Code Coverage') {
+            steps {
+                // Generate code coverage report with JaCoCo
+                jacoco execPattern: '**/target/jacoco.exec', 
+                       classPattern: '**/target/classes', 
+                       sourcePattern: '**/src/main/java', 
+                       exclusionPattern: '**/target/test-classes'
+            }
+        }
+        
+      // Build Docker Image Stage
+      stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
-      stage('Push Images to Docker Hub') {
+
+      // Push Docker Image to Docker Hub Stage
+      stage('Push Docker Image') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker_hub_repo', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
@@ -32,6 +59,13 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            // Cleanup workspace after the build
+            cleanWs()
         }
     }
 }
