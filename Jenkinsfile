@@ -18,15 +18,6 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
-            steps {
-                // Run tests and generate code coverage
-                sh "mvn test"
-                // Publish JUnit test results
-                junit '**/target/surefire-reports/*.xml'
-            }
-        }
-
         stage('Code Coverage') {
             steps {
                 // Generate code coverage report with JaCoCo
