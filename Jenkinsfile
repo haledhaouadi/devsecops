@@ -1,36 +1,33 @@
 pipeline {
-  agent any
-  tools {
+    agent any
+    tools {
         maven 'maven' // Specify the version of Maven you want to use
-  }
-  environment {
+    }
+    environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker_hub_repo')
         IMAGE_NAME = "haladhaouadi/my-repo"
         IMAGE_TAG = "devsecops-${env.BUILD_NUMBER}"  // Utilisation du numéro de build Jenkins comme version
-  }
-  stages {
-      // Build Artifact Stage
-      stage('Build Artifact') {
+    }
+    stages {
+        stage('Build Artifact') {
             steps {
-              // Build the artifact without running tests
-              sh "mvn clean package -DskipTests=true"
-              // Archive the built JAR file
-              archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+                // Build the artifact without running tests
+                sh "mvn clean package -DskipTests=true"
+                // Archive the built JAR file
+                archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
         }
 
-      // Unit Testing with JaCoCo Stage
-      stage('Unit Test') {
+        stage('Unit Test') {
             steps {
-              // Run tests and generate code coverage
-              sh "mvn test"
-              // Publish JUnit test results
-              junit '**/target/surefire-reports/*.xml'
+                // Run tests and generate code coverage
+                sh "mvn test"
+                // Publish JUnit test results
+                junit '**/target/surefire-reports/*.xml'
             }
         }
 
-      // Code Coverage with JaCoCo Stage
-      stage('Code Coverage') {
+        stage('Code Coverage') {
             steps {
                 // Generate code coverage report with JaCoCo
                 jacoco execPattern: '**/target/jacoco.exec', 
@@ -39,9 +36,14 @@ pipeline {
                        exclusionPattern: '**/target/test-classes'
             }
         }
-        
-      // Build Docker Image Stage
-      stage('Build Docker Image') {
+
+        stage('Mutation Tests - PIT') {
+            steps {
+                sh "mvn org.pitest:pitest-maven:mutationCoverage"
+            }
+        }
+
+        stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
@@ -49,8 +51,7 @@ pipeline {
             }
         }
 
-      // Push Docker Image to Docker Hub Stage
-      stage('Push Docker Image') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker_hub_repo', passwordVariable: 'DOCKER_HUB_PASSWORD', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
@@ -61,8 +62,7 @@ pipeline {
             }
         }
 
-      // Deploy to Kubernetes Stage
-      stage('Deploy to Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
                     // Use the secret file stored in Jenkins for the kubeconfig
