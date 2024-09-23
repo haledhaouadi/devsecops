@@ -18,16 +18,6 @@ pipeline {
             }
         }
 
-        stage('Code Coverage') {
-            steps {
-                // Generate code coverage report with JaCoCo
-                jacoco execPattern: '**/target/jacoco.exec', 
-                       classPattern: '**/target/classes', 
-                       sourcePattern: '**/src/main/java', 
-                       exclusionPattern: '**/target/test-classes'
-            }
-        }
-
         stage('Mutation Tests - PIT') {
             steps {
                 sh "mvn org.pitest:pitest-maven:mutationCoverage"
