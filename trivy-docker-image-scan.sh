@@ -3,18 +3,17 @@
 dockerImageName=$(awk 'NR==1 {print $2}' Dockerfile)
 echo $dockerImageName
 
-# Increase timeout to 300 seconds (5 minutes)
-docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.17.2 -q image --exit-code 0 --severity HIGH --light --timeout 300s $dockerImageName
+docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.17.2 -q image --exit-code 0 --severity HIGH --light $dockerImageName
+docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.17.2 -q image --exit-code 1 --severity CRITICAL --light $dockerImageName
 
-# Retry up to 3 times if the scan fails
-for i in {1..3}; do
-    docker run --rm -v $WORKSPACE:/root/.cache/ aquasec/trivy:0.17.2 -q image --exit-code 1 --severity CRITICAL --light --timeout 300s $dockerImageName
+    # Trivy scan result processing
     exit_code=$?
-    if [[ "${exit_code}" == 0 ]]; then
-        echo "Image scanning passed. No CRITICAL vulnerabilities found"
-        exit 0
-    fi
-done
+    echo "Exit Code : $exit_code"
 
-echo "Image scanning failed. Vulnerabilities found"
-exit 1
+    # Check scan results
+    if [[ "${exit_code}" == 1 ]]; then
+        echo "Image scanning failed. Vulnerabilities found"
+        exit 1;
+    else
+        echo "Image scanning passed. No CRITICAL vulnerabilities found"
+    fi;
