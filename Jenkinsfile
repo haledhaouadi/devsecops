@@ -93,7 +93,30 @@ pipeline {
                 }
             }
         }
-    }
+        stage('K8S Deployment - DEV') {
+          steps {
+            parallel(
+              "Deployment": {
+                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+                        bash k8s-deployment.sh
+                    '''
+                }
+              },
+              "Rollout Status": {
+                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG')]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+                        bash k8s-deployment-rollout-status.sh
+                    '''
+                }
+              }
+            )
+          }
+        }
+     }
+    
     
     post {
         always {
