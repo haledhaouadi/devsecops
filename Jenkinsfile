@@ -6,8 +6,9 @@ pipeline {
     environment {
         deploymentName = "devsecops"
         containerName = "devsecops-container"
-        serviceName =     applicationURL="http://devsecops-demo.eastus.cloudapp.azure.com"
-        applicationURI="/increment/99""devsecops-svc"
+        serviceName ="devsecops-svc"
+        applicationURL="http://devsecops-demo.eastus.cloudapp.azure.com"
+        applicationURI="/increment/99"
         DOCKER_HUB_CREDENTIALS = credentials('docker_hub_repo')
         IMAGE_NAME = "haladhaouadi/my-repo"
         IMAGE_TAG = "devsecops-${env.BUILD_NUMBER}"  // Utilisation du numéro de build Jenkins comme version
