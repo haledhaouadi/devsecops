@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,9 +16,22 @@ spec:
       labels:
         app: devsecops
     spec:
+      volumes:
+      - name: vol
+        emptyDir: {}
+      serviceAccountName: default
       containers:
-      - image: replace
+      - image: haladhaouadi/my-repo:devsecops-6
         name: devsecops-container
+        volumeMounts:
+        - mountPath: /tmp
+          name: vol
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 100
+          readOnlyRootFilesystem: true
+      imagePullSecrets:
+      - name: docker-sec
 ---
 apiVersion: v1
 kind: Service
