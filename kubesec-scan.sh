@@ -1,34 +1,28 @@
+
 #!/bin/bash
 
-# Perform the scan once and store the result
+#kubesec-scan.sh
+
+# using kubesec v2 api
 scan_result=$(curl -sSX POST --data-binary @"k8s_deployment_service.yaml" https://v2.kubesec.io/scan)
+scan_message=$(curl -sSX POST --data-binary @"k8s_deployment_service.yaml" https://v2.kubesec.io/scan | jq .[0].message -r ) 
+scan_score=$(curl -sSX POST --data-binary @"k8s_deployment_service.yaml" https://v2.kubesec.io/scan | jq .[0].score ) 
 
-# Check if curl succeeded
-if [[ $? -ne 0 ]]; then
-    echo "Failed to reach Kubesec API."
-    exit 1
-fi
 
-# Parse the message and score from the scan result
-scan_message=$(echo "$scan_result" | jq '.[0].message' -r)
-scan_score=$(echo "$scan_result" | jq '.[0].score')
+# using kubesec docker image for scanning
+# scan_result=$(docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < k8s_deployment_service.yaml)
+# scan_message=$(docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < k8s_deployment_service.yaml | jq .[].message -r)
+# scan_score=$(docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < k8s_deployment_service.yaml | jq .[].score)
 
-# Check if jq succeeded in parsing the response
-if [[ -z "$scan_score" || "$scan_score" == "null" ]]; then
-    echo "Failed to parse scan result. Please check your jq installation or the API response."
-    exit 1
-fi
+	
+    # Kubesec scan result processing
+    # echo "Scan Score : $scan_score"
 
-# Output the score and message
-echo "Scan Score: $scan_score"
-echo "Kubesec Scan Message: $scan_message"
-
-# Decision logic based on the scan score
-if [[ "$scan_score" -ge 5 ]]; then
-    echo "Kubernetes Resource passed with score $scan_score"
-else
-    echo "Score is $scan_score, which is less than or equal to 5."
-    echo "Scanning Kubernetes Resource has failed."
-    exit 1
-fi
-
+	if [[ "${scan_score}" -ge 0 ]]; then
+	    echo "Score is $scan_score"
+	    echo "Kubesec Scan $scan_message"
+	else
+	    echo "Score is $scan_score, which is less than or equal to 5."
+	    echo "Scanning Kubernetes Resource has Failed"
+	    exit 1;
+	fi;
