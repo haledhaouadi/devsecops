@@ -17,7 +17,17 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
             }
         }
-
+         stage('Unit Tests - JUnit and Jacoco') {
+            steps { 
+                sh "mvn test"
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml' 
+                    jacoco execPattern: 'target/jacoco.exec'
+                }
+            }
+        }
         stage('Mutation Tests - PIT') {
             steps {
                 sh "mvn org.pitest:pitest-maven:mutationCoverage"
